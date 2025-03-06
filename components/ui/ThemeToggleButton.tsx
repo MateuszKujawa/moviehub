@@ -1,47 +1,35 @@
-import { useEffect, useState, useCallback } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ThemeToggleButton() {
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
+  // Ustawia stan tylko po zamontowaniu komponentu, aby uniknąć problemów z SSR
   useEffect(() => {
-    console.log("useEffect: Sprawdzam stan z localStorage");
-    const isDark = localStorage.getItem("theme") === "dark";
-    console.log("useEffect: Tryb ciemny w localStorage:", isDark);
-    setDarkMode(isDark);
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    setMounted(true);
   }, []);
 
-  // Funkcja do przełączania trybu ciemnego
-  const toggleDarkMode = useCallback(() => {
-    console.log("toggleDarkMode: Wywołano toggle");
-    const newMode = !darkMode;
-    if (darkMode === newMode) return; // Jeśli stan nie zmienia się, nie wykonuj dalszych operacji
-    console.log("toggleDarkMode: Nowy tryb:", newMode ? "ciemny" : "jasny");
-    setDarkMode(newMode);
-    localStorage.setItem("theme", newMode ? "dark" : "light");
-    document.documentElement.classList.toggle("dark", newMode);
-  }, [darkMode]);
+  if (!mounted) {
+    return <div className="w-14 h-8 bg-gray-200 dark:bg-zinc-600 rounded-full" />;
+  }
 
-  console.log("Render: DarkMode aktualny stan:", darkMode);
+  const isDarkMode = theme === "dark";
 
   return (
     <button
-      onClick={toggleDarkMode}
-      className="relative flex items-center justify-center w-14 h-8 rounded-full bg-indigo-100 hover:bg-indigo-200 dark:bg-zinc-600 dark:hover:bg-gray-500"
+      onClick={() => setTheme(isDarkMode ? "light" : "dark")}
+      className="relative flex items-center justify-center w-14 h-8 rounded-full bg-indigo-100 hover:bg-indigo-200 dark:bg-zinc-600 dark:hover:bg-gray-500 transition-colors duration-300"
     >
       <AnimatePresence mode="wait">
-        {darkMode ? (
+        {isDarkMode ? (
           <motion.span
             key="light"
-            initial={{ opacity: 0, scale: 0.5 }}
+            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.15 }}
             className="absolute"
           >
             <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
@@ -52,10 +40,10 @@ export default function ThemeToggleButton() {
         ) : (
           <motion.span
             key="dark"
-            initial={{ opacity: 0, scale: 0.5 }}
+            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.15 }}
             className="absolute"
           >
             <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">

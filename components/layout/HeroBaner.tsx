@@ -8,7 +8,7 @@ import "swiper/css/effect-fade";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import Link from "next/link";
+import { useRouter } from "next/router";
 
 // Interfejs dla filmu
 interface Movie {
@@ -25,9 +25,10 @@ export default function HeroBanner() {
   });
 
   const swiperRef = useRef<any>(null);
+  const router = useRouter();
 
   return (
-    <div className="relative w-full h-[90vh] mb-20">
+    <div className="relative w-full h-[90vh] mb-12">
       {isLoading && <p className="text-center text-lg">Ładowanie...</p>}
       {isError && <p className="text-center text-red-500 text-lg">Błąd ładowania filmów.</p>}
 
@@ -64,12 +65,13 @@ export default function HeroBanner() {
               <div className="absolute bottom-16 left-10 text-white max-w-2xl">
                 <h1 className="text-4xl font-bold mb-4">{movie.title}</h1>
                 <p className="text-lg mb-6 line-clamp-3 opacity-90">{movie.overview}</p>
-                <Link href={`/movie/${movie.id}`} passHref>
-                  <button className="flex items-center space-x-2 px-6 py-2.5 bg-white text-black text-lg font-semibold rounded-full border border-transparent hover:bg-transparent hover:border-white hover:text-white transition duration-300">
-                    <span>Sprawdź film</span>
-                    <FaChevronRight size={20} />
-                  </button>
-                </Link>
+                <button
+                  onClick={() => router.push(`/movie/${movie.id}`)}
+                  className="flex items-center space-x-2 px-6 py-2.5 bg-white text-black text-lg font-semibold rounded-full border border-transparent hover:bg-transparent hover:border-white hover:text-white transition duration-300"
+                >
+                  <span>Sprawdź film</span>
+                  <FaChevronRight size={20} />
+                </button>
               </div>
             </SwiperSlide>
           ))}
