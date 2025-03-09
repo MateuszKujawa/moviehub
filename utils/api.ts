@@ -1,76 +1,108 @@
-const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-const BASE_URL = "https://api.themoviedb.org/3";
+const API_KEY: string | undefined = process.env.NEXT_PUBLIC_TMDB_API_KEY;
+const BASE_URL: string = "https://api.themoviedb.org/3";
+
+interface Movie {
+  id: number;
+  title: string;
+  poster_path?: string; // Upewnij się, że `poster_path` jest opcjonalne!
+  vote_average: number;
+  overview: string;
+  backdrop_path?: string; // 🔥 Może być opcjonalne!
+}
 
 
-// Wyszukiwanie filmów
-export async function searchMovies(query: string) {
-  if (!query) return [];
+interface Genre {
+  id: number;
+  name: string;
+}
+
+interface APIResponse<T> {
+  results: T;
+}
+
+// Pobieranie danych z API
+async function fetchFromAPI<T>(
+  endpoint: string,
+  params: Record<string, string | number> = {}
+): Promise<T | null> {
+  if (!API_KEY) {
+    console.error("Brak klucza API.");
+    return null;
+  }
+
+  const url = new URL(`${BASE_URL}/${endpoint}`);
+  url.searchParams.append("api_key", API_KEY);
+  url.searchParams.append("language", "pl-PL");
+
+  Object.entries(params).forEach(([key, value]) =>
+    url.searchParams.append(key, String(value))
+  );
 
   try {
-    const response = await fetch(
-      `${BASE_URL}/search/movie?api_key=${API_KEY}&language=pl-PL&query=${encodeURIComponent(query)}`
-    );
-    if (!response.ok) throw new Error("Nie udało się pobrać wyników wyszukiwania.");
-    const data = await response.json();
-    return data.results.slice(0, 5); // Max 5 wyników
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      throw new Error(`Błąd API: ${response.status} - ${errorMessage}`);
+    }
+    return await response.json();
   } catch (error) {
-    console.error("Błąd API (wyszukiwanie filmów):", error);
-    return [];
+    console.error("Błąd API:", error);
+    return null;
   }
+}
+
+// Wyszukiwanie filmów
+export async function searchMovies(query: string): Promise<Movie[]> {
+  if (!query) return [];
+  const data = await fetchFromAPI<APIResponse<Movie[]>>("search/movie", {
+    query: encodeURIComponent(query),
+  });
+  return data?.results?.slice(0, 5) || [];
 }
 
 // Top filmy
-export async function fetchTopMovies() {
-  const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-  const BASE_URL = "https://api.themoviedb.org/3";
-
-  try {
-    const response = await fetch(`${BASE_URL}/movie/top_rated?api_key=${API_KEY}&language=pl-PL&page=1`);
-    if (!response.ok) throw new Error("Nie udało się pobrać filmów.");
-    const data = await response.json();
-    return data.results;
-  } catch (error) {
-    console.error("Błąd API (topowe filmy):", error);
-    return [];
-  }
+export async function fetchTopMovies(): Promise<Movie[]> {
+  const data = await fetchFromAPI<APIResponse<Movie[]>>("movie/top_rated", {
+    page: 1,
+  });
+  return data?.results || [];
 }
 
 // Gatunki filmów
-export async function fetchMovieGenres() {
-  try {
-    const response = await fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}&language=pl-PL`);
-    if (!response.ok) throw new Error("Nie udało się pobrać gatunków filmowych.");
-    const data = await response.json();
-    return data.genres;
-  } catch (error) {
-    console.error("Błąd API (gatunki filmowe):", error);
-    return [];
-  }
+export async function fetchMovieGenres(): Promise<Genre[]> {
+  const data = await fetchFromAPI<{ genres: Genre[] }>("genre/movie/list");
+  return data?.genres || [];
 }
 
 // Filmy dla danej kategorii
-export async function fetchMoviesByCategory(category: string, genreId?: number) {
-  let url = "";
+export async function fetchMoviesByCategory(
+  category: string,
+  genreId?: number
+): Promise<Movie[]> {
+  let endpoint = "";
+  const params: Record<string, string | number> = {};
 
-  if (category === "popular") {
-    url = `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=pl-PL`;
-  } else if (category === "trending") {
-    url = `${BASE_URL}/trending/movie/week?api_key=${API_KEY}&language=pl-PL`;
-  } else if (category === "free") {
-    url = `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=pl-PL&watch_region=PL&with_watch_monetization_types=free`;
-  } else if (genreId) {
-    url = `${BASE_URL}/discover/movie?api_key=${API_KEY}&language=pl-PL&with_genres=${genreId}`;
-  } else {
-    throw new Error("Nieprawidłowa kategoria filmów.");
+  switch (category) {
+    case "popular":
+      endpoint = "movie/popular";
+      break;
+    case "trending":
+      endpoint = "trending/movie/week";
+      break;
+    case "free":
+      endpoint = "movie/popular";
+      params.watch_region = "PL";
+      params.with_watch_monetization_types = "free";
+      break;
+    default:
+      if (genreId) {
+        endpoint = "discover/movie";
+        params.with_genres = genreId;
+      } else {
+        throw new Error("Nieprawidłowa kategoria filmów.");
+      }
   }
 
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Nie udało się pobrać filmów.");
-    const data = await response.json();
-    return data.results;
-  } catch (error) {
-    console.error("Błąd API:", error);
-    return [];
-  }
+  const data = await fetchFromAPI<APIResponse<Movie[]>>(endpoint, params);
+  return data?.results || [];
 }

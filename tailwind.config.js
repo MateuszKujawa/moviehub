@@ -1,11 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
 	darkMode: "class",
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "./app/**/*.{js,ts,jsx,tsx}"
-  ],
+	content: [
+		"./pages/**/*.{js,ts,jsx,tsx}",
+		"./components/**/*.{js,ts,jsx,tsx}",
+		"./app/**/*.{js,ts,jsx,tsx}"
+	  ],
+	  safelist: [
+		"nprogress", "nprogress-bar", "nprogress-peg", "nprogress-spinner", "bg-indigo-500", "h-1"
+	  ],
   theme: {
   	extend: {
   		borderRadius: {

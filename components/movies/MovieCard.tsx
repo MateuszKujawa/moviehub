@@ -13,7 +13,6 @@ interface MovieCardProps {
 export default function MovieCard({ id, title, posterPath, rating, overview }: MovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  // Limit opisu do 120 znaków + "..."
   const maxOverviewLength = 120;
   const truncatedOverview =
     overview.length > maxOverviewLength ? overview.substring(0, maxOverviewLength) + "..." : overview;
@@ -25,7 +24,6 @@ export default function MovieCard({ id, title, posterPath, rating, overview }: M
       onMouseLeave={() => setIsHovered(false)}
     >
       <Link href={`/movie/${id}`} passHref>
-        {/* Obrazek filmu */}
         <div className="relative w-full h-[375px] flex justify-center items-center bg-black overflow-hidden rounded-xl">
           <Image
             src={`https://image.tmdb.org/t/p/w500${posterPath}`}
@@ -36,11 +34,9 @@ export default function MovieCard({ id, title, posterPath, rating, overview }: M
             className="rounded-xl transition-transform duration-200 ease-out group-hover:scale-105"
           />
 
-          {/* Ciemne nałożenie na hover */}
           <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-all duration-200" />
         </div>
 
-        {/* Informacje o filmie + opis (płynne wysunięcie) */}
         <div
           className={`absolute bottom-0 left-0 w-full p-3 bg-gradient-to-t from-black via-black/50 to-transparent rounded-b-xl transition-all duration-300 ${
             isHovered ? "h-[155px]" : "h-[90px]"
@@ -60,7 +56,6 @@ export default function MovieCard({ id, title, posterPath, rating, overview }: M
           </p>
         </div>
 
-        {/* Obramowanie hover */}
         <div className="absolute inset-0 rounded-xl border border-transparent transition-all duration-200 group-hover:border-indigo-500/50" />
       </Link>
     </div>

@@ -1,10 +1,12 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import Banner from "@/components/movies/Banner";
-import Description from "@/components/movies/Description";
-import CastList from "@/components/movies/CastList";
-import TrailerModal from "@/components/movies/TrailerModal";
+import Banner from "@/components/movie/Banner";
+import Description from "@/components/movie/Description";
+import CastList from "@/components/movie/CastList";
+import TrailerModal from "@/components/movie/TrailerModal";
+import Gallery from "@/components/movie/Gallery";
+
 
 const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -50,7 +52,7 @@ export default function MovieDetails() {
   const [watchProvider, setWatchProvider] = useState<{ name: string; logo: string } | null>(null);
 
   useEffect(() => {
-    if (!id || typeof id !== "string") return;
+    if (!id || Array.isArray(id)) return;
   
     async function fetchMovieDetails() {
       try {
@@ -71,23 +73,16 @@ export default function MovieDetails() {
         const watchData = await watchRes.json();
   
         const providers = watchData.results?.PL;
-        if (providers?.flatrate?.length) {
+        const selectedProvider = providers?.flatrate?.[0] || providers?.buy?.[0] || providers?.rent?.[0];
+
+        if (selectedProvider) {
           setWatchProvider({
-            name: providers.flatrate[0].provider_name,
-            logo: `https://image.tmdb.org/t/p/original${providers.flatrate[0].logo_path}`
-          });
-        } else if (providers?.buy?.length) {
-          setWatchProvider({
-            name: providers.buy[0].provider_name,
-            logo: `https://image.tmdb.org/t/p/original${providers.buy[0].logo_path}`
-          });
-        } else if (providers?.rent?.length) {
-          setWatchProvider({
-            name: providers.rent[0].provider_name,
-            logo: `https://image.tmdb.org/t/p/original${providers.rent[0].logo_path}`
+            name: selectedProvider.provider_name,
+            logo: `https://image.tmdb.org/t/p/original${selectedProvider.logo_path}`
           });
         }
-        
+
+                
         const creditsRes = await fetch(`${BASE_URL}/movie/${id}/credits?api_key=${API_KEY}`);
         const creditsData = await creditsRes.json();
         setCast(creditsData.cast.slice(0, 10));
@@ -103,17 +98,14 @@ export default function MovieDetails() {
   
 
   const handleTrailerOpen = () => {
-    if (!trailerKey) {
-      alert("Brak dostępnego trailera dla tego filmu.");
-      return;
-    }
+    if (!trailerKey) return;
     setShowTrailer(true);
   };
 
   if (!movie) return <Skeleton className="w-full h-96 rounded-lg" />;
 
   return (
-    <div className="min-h-screen dark:bg-zinc-900 bg-gray-200 text-zinc-900 dark:text-gray-100">
+    <div className="min-h-screen bg-gradient-to-b dark:from-zinc-700 dark:to-zinc-950  from-white via-gray-100 to-gray-300 text-zinc-900 dark:text-gray-100">
       <Banner 
         movie={movie} 
         trailerKey={trailerKey} 
@@ -124,6 +116,8 @@ export default function MovieDetails() {
       <Description overview={movie.overview} crew={crew} />
       <CastList cast={cast} />
       {showTrailer && trailerKey && <TrailerModal trailerKey={trailerKey} onClose={() => setShowTrailer(false)} />}
+      <Gallery movieId={id as string} />
+
     </div>
   );
 }

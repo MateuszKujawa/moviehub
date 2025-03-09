@@ -9,7 +9,6 @@ interface CrewMember {
   }
   
   export default function Description({ overview, crew }: DescriptionProps) {
-    // Pobranie reżysera i kilku kluczowych twórców
     const director = crew.find((member) => member.job === "Director");
     const keyCrew = crew.filter((member) => ["Writer", "Producer", "Composer"].includes(member.job));
   

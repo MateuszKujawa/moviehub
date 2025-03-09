@@ -8,15 +8,13 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-// Interfejsy
 interface Movie {
   id: number;
   title: string;
   poster_path: string;
   vote_average: number;
-  overview: string; // 🔥 Dodane pole, które wcześniej brakowało
+  overview: string;
 }
-
 
 interface Genre {
   id: number;
@@ -38,12 +36,39 @@ export default function MovieList() {
     ...(genres || []).map((genre) => ({ key: "genre", id: genre.id, name: genre.name })),
   ];
 
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const sortedCategories = selectedCategory
+  ? [selectedCategory, ...categories.filter((cat) => cat.name !== selectedCategory.name)]
+  : categories;
+
+
   return (
     <section className="mx-auto relative">
-      {isLoadingGenres && <p className="text-center text-lg">Ładowanie kategorii...</p>}
+      {isLoadingGenres && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+
       {isErrorGenres && <p className="text-center text-red-500 text-lg">Błąd ładowania kategorii.</p>}
 
-      {categories.map((category) => (
+      <div className="mx-8 mb-4 flex justify-start">
+        <select
+          className="p-2 rounded-md border bg-white dark:bg-zinc-800 dark:text-white"
+          onChange={(e) => {
+            const selected = categories.find(cat => cat.name === e.target.value);
+            setSelectedCategory(selected || null);
+          }}
+          value={selectedCategory?.name || ""}
+        >
+          <option value="">Sortuj po...</option>
+          {categories.map((category) => (
+            <option key={category.name} value={category.name}>{category.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {sortedCategories.map((category) => (
         <MovieCategoryRowLazy
           key={category.name}
           category={category.key}
@@ -65,7 +90,7 @@ function MovieCategoryRowLazy({ category, genreId, name }: { category: string; g
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          observer.disconnect(); // Odłączamy observer po pierwszym załadowaniu
+          observer.disconnect();
         }
       },
       { threshold: 0.3 }
@@ -89,14 +114,22 @@ function MovieCategoryRowLazy({ category, genreId, name }: { category: string; g
   );
 }
 
-// Komponent renderujący filmy w danej kategorii + strzałki
+// Render filmów w danej kategorii
 function MovieCategoryRow({ category, genreId }: { category: string; genreId?: number }) {
-  const { data: movies, isLoading, isError } = useQuery<Movie[]>({
+  const { data: movies, isLoading, isError } = useQuery<Movie[], Error>({
     queryKey: ["movies", category, genreId],
-    queryFn: () => fetchMoviesByCategory(category, genreId),
-    enabled: !!category, // Zapobiega niepotrzebnemu wywoływaniu zapytań
+    queryFn: async (): Promise<Movie[]> => {
+      const result = await fetchMoviesByCategory(category, genreId);
+      return result.map((movie) => ({
+        ...movie,
+        poster_path: movie.poster_path ?? "",
+        vote_average: movie.vote_average ?? 0,
+      }));
+    },
+    enabled: !!category,
   });
-
+  
+  
   const swiperRef = useRef<any>(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
@@ -118,7 +151,12 @@ function MovieCategoryRow({ category, genreId }: { category: string; genreId?: n
 
   return (
     <div className="relative mb-12">
-      {isLoading && <p className="text-center text-lg">Ładowanie...</p>}
+     {isLoading && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+
       {isError && <p className="text-center text-red-500 text-lg">Błąd ładowania filmów.</p>}
 
       <div className="relative">
@@ -136,16 +174,16 @@ function MovieCategoryRow({ category, genreId }: { category: string; genreId?: n
             paddingRight: "8px",
           }}
         >
-          {movies?.map((movie: Movie) => (
+          {Array.isArray(movies) && movies.map((movie: Movie) => (
             <SwiperSlide key={movie.id} className="!w-auto flex-shrink-0 rounded-xl">
-            <MovieCard
-              id={movie.id}
-              title={movie.title}
-              posterPath={movie.poster_path}
-              rating={movie.vote_average}
-              overview={movie.overview} // 🔥 Dodaj ten prop
-            />
-          </SwiperSlide>          
+              <MovieCard
+                id={movie.id}
+                title={movie.title}
+                posterPath={movie.poster_path}
+                rating={movie.vote_average}
+                overview={movie.overview} // 🔥 Dodaj ten prop
+              />
+            </SwiperSlide>          
           ))}
         </Swiper>
 
