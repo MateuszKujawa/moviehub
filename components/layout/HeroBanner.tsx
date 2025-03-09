@@ -29,7 +29,7 @@ export default function HeroBanner() {
   const router = useRouter();
 
   return (
-    <div className="relative w-full h-[90vh] mb-12">
+    <div className="relative w-full h-[100vh] mb-12">
       {isLoading && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
           <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
