@@ -1,13 +1,17 @@
 const API_KEY: string | undefined = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const BASE_URL: string = "https://api.themoviedb.org/3";
 
-interface Movie {
+export interface Movie {
   id: number;
   title: string;
-  poster_path?: string; // Upewnij się, że `poster_path` jest opcjonalne!
-  vote_average: number;
+  poster_path: string | null;
+  backdrop_path: string | null;
   overview: string;
-  backdrop_path?: string; // 🔥 Może być opcjonalne!
+  vote_average: number;
+  release_date: string;
+  runtime: number;
+  vote_count: number;
+  tagline?: string;
 }
 
 
@@ -62,11 +66,12 @@ export async function searchMovies(query: string): Promise<Movie[]> {
 
 // Top filmy
 export async function fetchTopMovies(): Promise<Movie[]> {
-  const data = await fetchFromAPI<APIResponse<Movie[]>>("movie/top_rated", {
-    page: 1,
-  });
-  return data?.results || [];
+  const data = await fetchFromAPI<APIResponse<Movie[]>>("movie/top_rated", { page: 1 });
+
+  // Zapewniamy, że results istnieje
+  return Array.isArray(data?.results) ? data.results : [];
 }
+
 
 // Gatunki filmów
 export async function fetchMovieGenres(): Promise<Genre[]> {

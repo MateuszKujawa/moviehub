@@ -7,14 +7,7 @@ import { useRef, useState, useEffect } from "react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string;
-  vote_average: number;
-  overview: string;
-}
+import { Movie } from '@/utils/api'
 
 interface Genre {
   id: number;
@@ -179,15 +172,14 @@ function MovieCategoryRow({ category, genreId }: { category: string; genreId?: n
               <MovieCard
                 id={movie.id}
                 title={movie.title}
-                posterPath={movie.poster_path}
+                posterPath={movie.poster_path ?? ""}
                 rating={movie.vote_average}
-                overview={movie.overview} // 🔥 Dodaj ten prop
+                overview={movie.overview}
               />
             </SwiperSlide>          
           ))}
         </Swiper>
 
-        {/* Lewa strzałka (pojawia się, gdy nie jesteśmy na początku) */}
         {!isBeginning && (
           <button
             onClick={slidePrev}

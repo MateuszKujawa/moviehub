@@ -3,12 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { searchMovies } from "@/utils/api";
 import Link from "next/link";
 import { FaSearch } from "react-icons/fa";
+import { Movie } from '@/utils/api'
 
-interface Movie {
-  id: number;
-  title: string;
-  poster_path: string;
-}
 
 export default function SearchBar() {
   const [searchQuery, setSearchQuery] = useState("");

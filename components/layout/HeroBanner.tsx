@@ -9,17 +9,13 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useRouter } from "next/router";
+import { Movie } from '@/utils/api'
 
-interface Movie {
-  id: number;
-  title: string;
-  backdrop_path: string;
-  overview: string;
-}
 
-const fetchMovies: QueryFunction<Movie[]> = async () => {
+const fetchMovies = async (): Promise<Movie[]> => {
   return fetchTopMovies();
 };
+
 
 export default function HeroBanner() {
   const { data, isLoading, isError } = useQuery<Movie[]>({

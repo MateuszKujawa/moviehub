@@ -8,13 +8,6 @@ const nextConfig = {
         pathname: "/t/p/**"
       }
     ]
-  },
-  webpackDevMiddleware: config => {
-    config.watchOptions = {
-      poll: 1000, // Sprawdza zmiany co 1 sekundę
-      aggregateTimeout: 300, // Czas, po którym jest uruchamiana aktualizacja
-    };
-    return config;
   }
 };
 
