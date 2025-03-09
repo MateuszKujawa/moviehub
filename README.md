@@ -1,4 +1,4 @@
-🎬 MovieHub
+## 🎬 MovieHub
 
 MovieHub to nowoczesna aplikacja webowa stworzona na potrzeby zadania rekrutacyjnego. Jej głównym celem jest dostarczenie użytkownikom przejrzystego i intuicyjnego sposobu na przeglądanie filmów oraz ich kategorii.
 
